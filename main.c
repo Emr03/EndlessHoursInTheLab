@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include "arm_math.h"
 
-int FIR_C(int* Input, float* Output){
+void FIR_C(int* Input, float* Output){
 	
 	int length = sizeof(*Input) / sizeof(Input[0]);
-	int N = 4;
 	float B[5] = {0.1, 0.15, 0.5, 0.15, 0.1};
 	
 	Output = (float*) malloc(sizeof(*Input));  
@@ -24,14 +23,23 @@ int FIR_C(int* Input, float* Output){
 int main()
 {
 	
-	int Input = 10;
-	printf("Begins Asm\n");
+	// basic tests for naive implementation
+	int Input[1] = {0};
+	printf("%s", "test 1");
+	float* Output;
+	*Output = -1; 	
+	FIR_C(Input, Output);
+	printf("%s", Output[0]);
+	 
+		
+	int Input_2[6] = {0, 0, 0, 0, 0, 0};
+	*Output = -1; 
+	FIR_C(Input_2, Output);
 	
-	float Output = -1;
-	
-	FIR_C(&Input, &Output);
+	int Input_3[10] = {1, 2, 1, 2, 3, -1, -2, -3, 1, 1}; 
+	*Output = -1; 
+	FIR_C(Input_3, Output);
 
-	printf("The end!\n");
 	
 	return 0;
 }
