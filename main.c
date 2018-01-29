@@ -1,7 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "arm_math.h"
+#include <float.h>
 
+void FIR_C(int *Input, float *Output, int length);
+
+void C_math(float *Input, float *Output, int Length){
+	
+	//max,maxIndex,min,minIndex,rms
+	//float math[5] = {0, 0, 0, 0, 0};
+	
+	//FIR_C(&Input[0], Output, Length);
+	
+	Output[2] = FLT_MAX;
+	Output[0] = FLT_MIN;
+	
+	for (int i=0; i<Length; i++){
+		Output[4] += Input[i]*Input[i];
+		//Output[4] += pow(Input[i],2.0);
+		if (Input[i] > Output[0]){
+			printf("%s %d \n", "max : ", Input[i]);
+			Output[0] = Input[i];
+			Output[1] = i;
+		}
+		if(Input[i] < Output[2]){
+			printf("%s %d \n", "min : ", Input[i]);
+			Output[2] = Input[i];
+			Output[3] = i;
+		}
+
+	}
+	
+	Output[4] /= Length;
+	Output[4] = sqrt(Output[4]);
+}
 
 #define VAR
 
@@ -59,7 +91,18 @@ int main()
 	Output = (float*) malloc(10*sizeof(Input_3[0]));  
 	FIR_C(&Input_3[0], Output, 10);
 	printf("%f \n", Output[0]);
-
+	
+	for(int i=0; i<10; i++){
+		printf("%f \n", Output[i]);
+	}
+	
+	//C math test cases
+	float math[5] = {0, 0, 0, 0, 0};
+	C_math(Output, math, 10);
+	
+	for(int i=0; i<5; i++){
+		printf("%f \n", math[i]);
+	}
 	
 	return 0;
 }
