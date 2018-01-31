@@ -3,7 +3,10 @@
 #include "arm_math.h"
 #include <float.h>
 
+
 void FIR_C(int *Input, float *Output, int length);
+void asm_math(float* Output, float* Result, int length);
+
 
 void C_math(float *Input, float *Output, int Length){
 	
@@ -71,38 +74,28 @@ void FIR_C(int *Input, float *Output, int length){
 
 int main()
 {
-	
+
 	// basic tests for naive implementation
-	int Input[1] = {0};
-	printf("%s \n", "Executing Test 1...");
-	float *Output; 
-	Output = (float*) malloc(10*sizeof(Input[0]));
-	FIR_C(&Input[0], Output, 1);
-	printf("%f \n", Output[0]);
-	 
-	printf("%s \n", "Executing Test 2...");	
-	int Input_2[6] = {0, 0, 0, 0, 0, 0};
-	Output = (float*) malloc(10*sizeof(Input_2[0]));
-	FIR_C(&Input_2[0], Output, 6);
-	printf("%f \n", Output[0]);
-	
+
 	printf("%s \n", "Executing Test 3...");	
 	int Input_3[10] = {1, 2, 1, 2, 3, -1, -2, -3, 1, 1}; 
-	Output = (float*) malloc(10*sizeof(Input_3[0]));  
+	float *Output = (float*) malloc(10*sizeof(Input_3[0]));  
+	
 	FIR_C(&Input_3[0], Output, 10);
-	printf("%f \n", Output[0]);
+	
+	float* Result = (float*) malloc(10*sizeof(Input_3[0]));
+	//C math test cases
+	float math[5] = {0, 0, 0, 0, 0};
+	//C_math(Output, math, 10);
 	
 	for(int i=0; i<10; i++){
 		printf("%f \n", Output[i]);
 	}
 	
-	//C math test cases
-	float math[5] = {0, 0, 0, 0, 0};
-	C_math(Output, math, 10);
+	asm_math(Output, Result, 10); 
+
 	
-	for(int i=0; i<5; i++){
-		printf("%f \n", math[i]);
-	}
+
 	
 	return 0;
 }
