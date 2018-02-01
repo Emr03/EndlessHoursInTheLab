@@ -40,7 +40,7 @@ asm_math
 		VMOV.F32 S3, S1
 		
 		; initialize index to 0
-		VSUB.F32 S8, S8, S8
+		SUB R8, R8, R8
 		
 		; Compare address in R7 with address in R2
 loop 	CMP R2, R7;
@@ -50,13 +50,14 @@ loop 	CMP R2, R7;
 			ADD R7, R7, #4
 			VLDR S4, [R7]
 			
-			VADD.F32 S8, S8, #1.0
+			ADD R8, R8, #1
 					
 			; compare what's in S4 with current MAX VALUE
 			VCMP.F32 S4, S1;
 			VMRS APSR_nzcv, FPSCR			
 			VMOVGT.F32 S1, S4
-			VMOVGT.F32 S5, S8
+			;VMRS APSR_nzcv, FPSCR	
+			MOVGT R5, R8
 			; VMOVGT.F32 S5, R7
 			
 			; compare what's in S4 with current MIN VALUE
@@ -90,4 +91,4 @@ blah
 		 ; VSUB.F32 S6, S6, S1
 		 ; VDIV.F32 S6, S6, S2
 		
-END
+	END
