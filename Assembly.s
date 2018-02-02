@@ -28,11 +28,16 @@ asm_math
 		;  load first element of array into MAX_VALUE and MIN_VALUE
 		VLDR S1, [R0]
 		VMOV.F32 S2, S1
+		
+		; initialize the indices
+		SUB R5, R5, R5
+		SUB R6, R6, R6
 			
 		; load the address of the first element in the register for ITER
 		MOV R7, R0
 			
 		; R2 now holds the address of the last element
+		SUB R2, R2, #1
 		LSL R2, #2
 		ADD R2, R2, R0
 		
@@ -43,9 +48,7 @@ asm_math
 		SUB R8, R8, R8
 		
 		; Compare address in R7 with address in R2
-loop 	CMP R2, R7;
-			BEQ blah
-					 
+loop 					 
 			; load contents of next array element into S4 (temp register)
 			ADD R7, R7, #4
 			VLDR S4, [R7]
@@ -57,14 +60,14 @@ loop 	CMP R2, R7;
 			VMRS APSR_nzcv, FPSCR			
 			VMOVGT.F32 S1, S4
 			;VMRS APSR_nzcv, FPSCR	
-			MOVGT R5, R8
+			ADDGT R5, R8, #0
 			; VMOVGT.F32 S5, R7
 			
 			; compare what's in S4 with current MIN VALUE
 			VCMP.F32 S4, S2;
 			VMRS APSR_nzcv, FPSCR			
 			VMOVLT.F32 S2, S4	
-			MOVLT R6, R8
+			ADDLT R6, R8, #0
 			
 			; square the element
 			VMUL.F32 S4, S4, S4
@@ -72,9 +75,9 @@ loop 	CMP R2, R7;
 			; add to total
 			VADD.F32 S3, S3, S4
 			
-			B loop
+			CMP R2, R7;
+			BNE loop
 			
-blah 
 		 ; write min and max values to the array
 		 
 		 VSTR S1, [R1, #4]

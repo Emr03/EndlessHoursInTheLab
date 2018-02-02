@@ -69,13 +69,15 @@ void FIR_C(int *Input, float32_t *Output, int length){
 	
 	#ifdef VAR
 	// hard coded for first 4
-	*Output = B[0]*Input[0];
-	*(Output +1) = B[0]*Input[1] + B[1]*Input[0]; 
+	Output[0] = B[0]*Input[0];
+	Output[1] = B[0]*Input[1] + B[1]*Input[0]; 
 	Output[2] = B[0]*Input[2] + B[1]*Input[1] + B[2]*Input[0];
 	Output[3] = B[0]*Input[3] + B[1]*Input[2] + B[2]*Input[1] + B[3]*Input[0];
 	
 	for (int i = 4; i <length; i++){
+		printf("%s, %d\n", "input", Input[i]); 
 		Output[i] = B[0]*Input[i] + B[1]*Input[i-1] + B[2]*Input[i-2] + B[3]*Input[i-3] + B[4]*Input[i-4];
+		printf("%s, %f\n", "output", Output[i]);
 	}
 	#endif
 	
@@ -101,14 +103,16 @@ int main()
 	// basic tests for naive implementation
 
 	printf("%s \n", "Executing Test 3...");
-	srand(9);
+	srand(90);
 	int Input_3[100]; 
 	for (int k=0; k<100; k++){
 		Input_3[k] = rand()%10;
+		printf("%d ", Input_3[k]);
 	}
+
 	float32_t *Output = (float32_t*) malloc(100*sizeof(float32_t));  
 	
-	FIR_C(&Input_3[0], Output, 10);
+	FIR_C(&Input_3[0], Output, 100);
 	
 	float32_t* Result = (float32_t*) malloc(5*sizeof(Input_3[0]));
 	//C math test cases
@@ -120,7 +124,7 @@ int main()
 	}
 	
 	printf("%p \n", Result);
-	
+/*
 	asm_math(Output, Result, 100); 
 		
 
@@ -136,8 +140,8 @@ int main()
 	for(int i=0; i<5; i++){
 		printf("%f \n", Result[i]); 
 	}*/
+/*
 
-	/*
 	C_math(Output, Result, 100); 
 	
 	printf("%f \n", Result[0]);
@@ -145,9 +149,9 @@ int main()
 	printf("%f \n", Result[2]);
 	printf("%f \n", Result[3]);
 	printf("%f \n", Result[4]);
-	*/
+	
 	printf("%s \n", "*******************************");
-	/*
+*/
 	float32_t* Result_1 = (float32_t*) malloc(5*sizeof(float32_t));
 	CMSIS_math(Output, Result_1, 100);
 	
@@ -156,6 +160,6 @@ int main()
 	printf("%f \n", Result_1[2]);
 	printf("%f \n", Result_1[3]);
 	printf("%f \n", Result_1[4]);
-	*/
+
 	return 0;
 }
