@@ -64,7 +64,7 @@ loop 	CMP R2, R7;
 			VCMP.F32 S4, S2;
 			VMRS APSR_nzcv, FPSCR			
 			VMOVLT.F32 S2, S4	
-			VMOVLT.F32 S6, S8
+			MOVLT R6, R8
 			
 			; square the element
 			VMUL.F32 S4, S4, S4
@@ -76,8 +76,37 @@ loop 	CMP R2, R7;
 			
 blah 
 		 ; write min and max values to the array
+		 
 		 VSTR S1, [R1, #4]
 		 VSTR S2, [R1, #8]
+		 
+		 ;VLDR S11, [R1, #4]
+		 ;VLDR S12, [R1, #8]
+		 
+		 VMOV.F32 S1, R5
+		 VCVT.F32.S32 S2, S1	
+		 
+		 VSTR S2, [R1, #12]
+		 ;VLDR S13, [R1, #12]
+		 
+		 VMOV.F32 S1, R6
+		 VCVT.F32.S32 S2, S1	
+		 
+		 VSTR S2, [R1, #16]
+		 ;VLDR S14, [R1, #16]
+		 
+		 ; div S3 by R8
+		 VMOV.F32 S2, R8
+		 VCVT.F32.S32 S1, S2	 
+		 VDIV.F32 S3, S3, S1
+		 
+		 ; sqare root
+		 VSQRT.F32 S3, S3
+		 
+		 ; save rms to memory
+		 VSTR S3, [R1]
+		 ;VLDR S15, [R1]
+		 
 		 
 		 ; VCVT.F32.S32 R, S6
 		 ; VCVT.F32.S32 R, S5
