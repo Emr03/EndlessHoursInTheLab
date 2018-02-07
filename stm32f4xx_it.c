@@ -41,6 +41,8 @@ extern uint16_t tDelay;
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
+extern DAC_HandleTypeDef hdac;
+extern uint16_t adcValue; 
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -58,6 +60,7 @@ void SysTick_Handler(void)
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 	HAL_ADC_Start(&hadc1);
+	HAL_DAC_Start(&hdac, DAC_CHANNEL_1); 
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -112,9 +115,24 @@ void ADC_IRQHandler(void)
   /* USER CODE END ADC_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
   /* USER CODE BEGIN ADC_IRQn 1 */
-	uint16_t adc_value = HAL_ADC_GetValue(&hadc1);
-	float conv_value = adc_value * 3.3 / 4096;
+	adcValue = HAL_ADC_GetValue(&hadc1);
+	float conv_value = adcValue * 3.3 / 4096;
   /* USER CODE END ADC_IRQn 1 */
+}
+
+/**
+* @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
+*/
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_DAC_IRQHandler(&hdac);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 1000);
+	
+  /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
