@@ -37,12 +37,13 @@
 
 /* USER CODE BEGIN 0 */
 extern uint16_t tDelay;
+extern float adcValue;
+extern uint8_t state; 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
 extern DAC_HandleTypeDef hdac;
-extern uint16_t adcValue; 
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -90,18 +91,15 @@ void RCC_IRQHandler(void)
 void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
-	for(int i=0; i<655535; i++);
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0)){
-		if (tDelay==250)
-			tDelay=1000;
-		else 
-			tDelay = 250; 
-	}
+	
+	state = (state + 1)%3; 
+	
+	
 	
   /* USER CODE END EXTI0_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
   /* USER CODE BEGIN EXTI0_IRQn 1 */
-
+   //change what we are displaying
   /* USER CODE END EXTI0_IRQn 1 */
 }
 
@@ -116,8 +114,21 @@ void ADC_IRQHandler(void)
   HAL_ADC_IRQHandler(&hadc1);
   /* USER CODE BEGIN ADC_IRQn 1 */
 	adcValue = HAL_ADC_GetValue(&hadc1);
-	float conv_value = adcValue * 3.3 / 4096;
   /* USER CODE END ADC_IRQn 1 */
+}
+
+/**
+* @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
+*/
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  HAL_DAC_IRQHandler(&hdac);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
