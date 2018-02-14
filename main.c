@@ -38,9 +38,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
+#include <stdlib.h>
 
 /* USER CODE BEGIN Includes */
-#include "math.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -53,6 +53,9 @@ DAC_HandleTypeDef hdac;
 uint16_t tDelay = 250;
 uint16_t adcValue=0;
 uint8_t state = 2; 
+int sample_counter = 0;
+int update_counter = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -83,7 +86,13 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+		float math_values[5] = {0, 0, 0, 0, 0};
+		float filtered_values[10]; 
+		float current_min = FLT_MAX; 
+		float current_max = FLT_MIN; 
+		float current_sos = 0; 
+		float rms = 0; 
+		int digits[3] = {0,0,0};
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -101,9 +110,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+	// that worked don't touch!
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 105);
-	float conv_value = adcValue * 3.3 / 4096;
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,8 +124,62 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-		HAL_GPIO_TogglePin(GPIOD, LD6_Pin); 
-		HAL_Delay(tDelay);
+		//float conv_value = adcValue * 3.3 / 4096;
+
+		//do the math for 10 consecutive values
+		while(sample_counter < 10){
+			FIR_C(&adcValue, filtered_values, sample_counter);
+			sample_counter++; 
+			update_counter++;
+		}
+		sample_counter = 0;
+		
+		// find min, max and rms
+		C_math(&filtered_values[0], math_values, 10);
+		if(math_values[0] > current_max){
+			current_max = math_values[0];
+		}
+		if(math_values[2] < current_min){
+			current_min = math_values[2];
+		}
+		current_sos += math_values[4]*math_values[4]*10;
+		
+		//switch case for rms, min and max display
+		if (update_counter == 500){
+			update_counter = 0;
+			
+			//figuring out the pins
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, 1); 
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, 1);
+			switch(state){
+				case(0):
+					//display min
+					to_digits(current_min, digits);
+				
+					//fast toggling 
+					//first digit
+				
+				  current_min = FLT_MAX;
+					break;
+				case(1):
+					//display max
+					to_digits(current_max, digits);
+
+				  current_max = FLT_MIN;
+					break;
+				case(2):
+					//display rms
+				  rms = sqrtf(current_sos/500.0);
+					to_digits(rms, digits);				
+
+					current_sos = 0;
+					break;
+				
+				
+		}
+				
+		//HAL_GPIO_TogglePin(GPIOD, LD6_Pin); 
+		//HAL_Delay(tDelay);
 		//HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
   }
   /* USER CODE END 3 */
@@ -167,7 +232,7 @@ void SystemClock_Config(void)
 
     /**Configure the Systick interrupt time 
     */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/50);
 
     /**Configure the Systick 
     */
