@@ -38,7 +38,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include <stdlib.h>
 
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -114,6 +113,20 @@ int main(void)
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 105);
 	
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, 0);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, 1); 
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, 1);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, 1); 	
+	
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, 0);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, 0);
+	
 	
   /* USER CODE END 2 */
 
@@ -149,8 +162,7 @@ int main(void)
 			update_counter = 0;
 			
 			//figuring out the pins
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, 1); 
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, 1);
+
 			switch(state){
 				case(0):
 					//display min
@@ -182,6 +194,7 @@ int main(void)
 		//HAL_Delay(tDelay);
 		//HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
   }
+}
   /* USER CODE END 3 */
 
 }
