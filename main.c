@@ -114,6 +114,7 @@ int main(void)
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 105);
 	
 
+	//write 8
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, GPIO_PIN_SET);
@@ -135,6 +136,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 		//float conv_value = adcValue * 3.3 / 4096;
 
+		/*
 		//do the math for 10 consecutive values
 		while(sample_counter < 10){
 			FIR_C(&adcValue, filtered_values, sample_counter);
@@ -142,6 +144,11 @@ int main(void)
 			update_counter++;
 		}
 		sample_counter = 0;
+		*/
+		
+		//testing something, remember to remove!
+		sample_counter++; 
+		update_counter++;
 		
 		// find min, max and rms
 		C_math(&filtered_values[0], math_values, 10);
@@ -199,7 +206,7 @@ int main(void)
 			}
 			current_min = FLT_MAX;
 			current_max = FLT_MIN;
-			rms = sqrtf(current_sos/500.0);	
+			//rms = sqrtf(current_sos/500.0);	
 			current_sos = 0;
 				
 		}
