@@ -112,10 +112,28 @@
 /* USER CODE BEGIN Private defines */
 #include <stdint.h>
 #include <float.h>
+
 	void FIR_C(uint16_t *Input, float *Output, int update_num);
 	void C_math(float input, float *Output);
 	void to_digits(float input, int *digits);
 	
+// Macro defines for seven segment display
+#define SEG GPIOE
+#define CONTROL GPIOD
+#define A GPIO_PIN_7
+#define B GPIO_PIN_8
+#define C GPIO_PIN_9
+#define D GPIO_PIN_10
+#define E GPIO_PIN_11
+#define F GPIO_PIN_12
+#define G GPIO_PIN_13
+#define P GPIO_PIN_14
+	
+#define DIGIT1 GPIO_PIN_10
+#define DIGIT2 GPIO_PIN_9
+#define DIGIT3 GPIO_PIN_8
+
+
 //bit sequence for 7-segment display
 
 /* USER CODE END Private defines */

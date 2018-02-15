@@ -56,6 +56,15 @@ int sample_counter = 0;
 int update_counter = 0;
 float filtered_values[10];
 uint16_t unfiltered_values[5]; 
+float math_values[3] = {FLT_MAX, FLT_MIN, 0};
+int min_digits[3] = {0, 0, 0}; 
+int max_digits[3] = {0, 0, 0}; 
+int rms_digits[3] = {0, 0, 0};
+uint8_t new_value_flag = 0; 
+
+float current_min; 
+float current_max; 
+float rms=0; 
 
 
 /* USER CODE END PV */
@@ -72,6 +81,114 @@ static void MX_DAC_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+/*Warning: Really ugly function*/
+void display(int digit){
+	
+	switch(digit){
+		
+		case(0):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_RESET); 
+			break;
+
+		case(1):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_RESET); 
+			break;
+		
+		case(2):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET); 
+			break;
+		
+		case(3):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET); 
+			break;
+		
+		case(4):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET); 
+			break;
+		
+		case(5):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET); 
+			break;
+		
+		case(6):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET);
+			break;
+				
+		case(7):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_RESET);
+			break;
+		
+		case(8):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET);
+			break;
+		
+		case(9):
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET);
+			break;
+	}
+}
+
+
 
 /* USER CODE END 0 */
 
@@ -88,13 +205,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-		float math_values[5] = {0, 0, 0};
-		
-		float current_min = FLT_MAX; 
-		float current_max = FLT_MIN; 
-		float current_sos = 0; 
-		float rms = 0; 
-		int digits[3] = {current_min, current_max, 0};
+
+		to_digits(math_values[0], min_digits);
+		to_digits(math_values[1], max_digits);
+		to_digits(math_values[2], rms_digits); 
   
 		/* USER CODE END Init */
 
@@ -119,6 +233,7 @@ int main(void)
 	
 
 	//write 8
+	/*
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, GPIO_PIN_SET);
@@ -127,7 +242,7 @@ int main(void)
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET);
-	
+	*/
 	
   /* USER CODE END 2 */
 
@@ -139,11 +254,6 @@ int main(void)
 	
   /* USER CODE BEGIN 3 */
 		//float conv_value = adcValue * 3.3 / 4096;
-		//do the math for 10 consecutive values
-		FIR_C(unfiltered_values, filtered_values, sample_counter);
-		
-		// find min, max and rms, moving window approach		
-		C_math(adcValue, math_values);
 		
 		switch(state){
 				case(0):
@@ -152,6 +262,7 @@ int main(void)
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					//display current min
 					break;
 				
 				case(1):
@@ -172,17 +283,14 @@ int main(void)
 		//switch case for refreshing display
 		if (update_counter == 500){
 			update_counter = 0;
-			rms = sqrtf(math_values[2]);	
-			to_digits(current_min, digits);
-			to_digits(current_max, digits);
-			to_digits(rms, digits);				
+			to_digits(math_values[0], min_digits);
+			to_digits(math_values[1], max_digits);
+			to_digits(rms, rms_digits);				
 		
-			// rest math values
-			current_min = FLT_MAX;
-			current_max = FLT_MIN;
+			// reset math values
 			rms = 0; 
-			math_values[0] = current_min; 
-			math_values[1] = current_max; 
+			math_values[0] = FLT_MAX; 
+			math_values[1] = FLT_MIN; 
 			math_values[2] = rms;
 		}
 				

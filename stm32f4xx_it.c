@@ -41,16 +41,21 @@ extern uint16_t adcValue;
 extern uint8_t state; 
 extern int sample_counter; 
 extern int update_counter;
-extern int unfiltered_values[5];
+extern int16_t unfiltered_values[5];
+extern float filtered_values[10];
 uint8_t digit_count = 2; 
+extern float math_values[3]; 
+extern float rms; 
+extern uint8_t new_value_flag; 
 
+extern float current_min; 
+extern float current_max; 
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
 extern DAC_HandleTypeDef hdac;
-extern int unfiltered_values[5]; 
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -74,6 +79,8 @@ void SysTick_Handler(void)
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
+			// set the decimal point on the first digit
+			HAL_GPIO_WritePin(SEG, P, GPIO_PIN_SET); 
 			break;
 		
 		case(1):
@@ -146,6 +153,9 @@ void ADC_IRQHandler(void)
   /* USER CODE BEGIN ADC_IRQn 1 */
 	adcValue = HAL_ADC_GetValue(&hadc1);
 	
+	// raise the new value flag 
+	new_value_flag = 1; 
+	
 	// add adcValue to the cyclic buffer
 	// since sample_counter counts to 10, and we save the last 5 unfiltered values, sample_counter%5 results in the appropriate index
 	unfiltered_values[sample_counter%5] = adcValue; 
@@ -158,7 +168,19 @@ void ADC_IRQHandler(void)
 	if (sample_counter == 10){
 			//reset the sample counter
 			sample_counter = 0; 		
+			// compute and reset the rms
+			rms = sqrtf(math_values[2]/10);	
 		}
+	
+	//do the math for 10 consecutive values
+	FIR_C(unfiltered_values, filtered_values, sample_counter);
+		
+	// find min, max and rms, moving window approach		
+	C_math(adcValue, math_values);
+	current_min = math_values[0]; 
+	current_max = math_values[1]; 
+	rms = sqrtf(math_values[2]);
+		
 		
   /* USER CODE END ADC_IRQn 1 */
 }
