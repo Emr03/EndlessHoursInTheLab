@@ -54,6 +54,9 @@ uint16_t adcValue=0;
 uint8_t state = 2; 
 int sample_counter = 0;
 int update_counter = 0;
+float filtered_values[10];
+uint16_t unfiltered_values[5]; 
+
 
 /* USER CODE END PV */
 
@@ -85,14 +88,15 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-		float math_values[5] = {0, 0, 0, 0, 0};
-		float filtered_values[10]; 
+		float math_values[5] = {0, 0, 0};
+		
 		float current_min = FLT_MAX; 
 		float current_max = FLT_MIN; 
 		float current_sos = 0; 
 		float rms = 0; 
-		int digits[3] = {0,0,0};
-  /* USER CODE END Init */
+		int digits[3] = {current_min, current_max, 0};
+  
+		/* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
@@ -135,30 +139,11 @@ int main(void)
 	
   /* USER CODE BEGIN 3 */
 		//float conv_value = adcValue * 3.3 / 4096;
-
-		/*
 		//do the math for 10 consecutive values
-		while(sample_counter < 10){
-			FIR_C(&adcValue, filtered_values, sample_counter);
-			sample_counter++; 
-			update_counter++;
-		}
-		sample_counter = 0;
-		*/
+		FIR_C(unfiltered_values, filtered_values, sample_counter);
 		
-		//testing something, remember to remove!
-		sample_counter++; 
-		update_counter++;
-		
-		// find min, max and rms
-		C_math(&filtered_values[0], math_values, 10);
-		if(math_values[0] > current_max){
-			current_max = math_values[0];
-		}
-		if(math_values[2] < current_min){
-			current_min = math_values[2];
-		}
-		current_sos += math_values[4]*math_values[4]*10;
+		// find min, max and rms, moving window approach		
+		C_math(adcValue, math_values);
 		
 		switch(state){
 				case(0):
@@ -184,31 +169,21 @@ int main(void)
 					break;				
 			}
 		
-		//switch case for rms, min and max display
+		//switch case for refreshing display
 		if (update_counter == 500){
 			update_counter = 0;
-			
-			switch(state){
-				case(0):
-					//display min
-					to_digits(current_min, digits);
-					break;
-				
-				case(1):
-					//display max
-					to_digits(current_max, digits);
-					break;
-				
-				case(2):
-					//display rms		 
-					to_digits(rms, digits);				
-					break;			
-			}
+			rms = sqrtf(math_values[2]);	
+			to_digits(current_min, digits);
+			to_digits(current_max, digits);
+			to_digits(rms, digits);				
+		
+			// rest math values
 			current_min = FLT_MAX;
 			current_max = FLT_MIN;
-			//rms = sqrtf(current_sos/500.0);	
-			current_sos = 0;
-				
+			rms = 0; 
+			math_values[0] = current_min; 
+			math_values[1] = current_max; 
+			math_values[2] = rms;
 		}
 				
 		//HAL_GPIO_TogglePin(GPIOD, LD6_Pin); 

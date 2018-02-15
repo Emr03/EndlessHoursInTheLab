@@ -37,15 +37,20 @@
 
 /* USER CODE BEGIN 0 */
 extern uint16_t tDelay;
-extern float adcValue;
+extern uint16_t adcValue;
 extern uint8_t state; 
+extern int sample_counter; 
+extern int update_counter;
+extern int unfiltered_values[5];
 uint8_t digit_count = 2; 
+
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
 extern DAC_HandleTypeDef hdac;
+extern int unfiltered_values[5]; 
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -140,6 +145,21 @@ void ADC_IRQHandler(void)
   HAL_ADC_IRQHandler(&hadc1);
   /* USER CODE BEGIN ADC_IRQn 1 */
 	adcValue = HAL_ADC_GetValue(&hadc1);
+	
+	// add adcValue to the cyclic buffer
+	// since sample_counter counts to 10, and we save the last 5 unfiltered values, sample_counter%5 results in the appropriate index
+	unfiltered_values[sample_counter%5] = adcValue; 
+	
+	//update the sample counter (max 10)
+	sample_counter += 1;
+	//update the "display update counter" max 500
+	update_counter += 1; 
+	
+	if (sample_counter == 10){
+			//reset the sample counter
+			sample_counter = 0; 		
+		}
+		
   /* USER CODE END ADC_IRQn 1 */
 }
 

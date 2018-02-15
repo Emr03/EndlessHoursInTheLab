@@ -112,8 +112,8 @@
 /* USER CODE BEGIN Private defines */
 #include <stdint.h>
 #include <float.h>
-	void FIR_C(uint16_t *Input, float *Output, int index);
-	void C_math(float *Input, float *Output, int Length);
+	void FIR_C(uint16_t *Input, float *Output, int update_num);
+	void C_math(float input, float *Output);
 	void to_digits(float input, int *digits);
 	
 //bit sequence for 7-segment display
