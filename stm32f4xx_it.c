@@ -39,6 +39,8 @@
 extern uint16_t tDelay;
 extern float adcValue;
 extern uint8_t state; 
+uint8_t digit_count = 2; 
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -60,8 +62,33 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+	//set digits
+	switch(digit_count){
+		
+		case(0):
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
+			break;
+		
+		case(1):
+			//set second digit 
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET); 
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
+				break;
+		
+		case(2):
+			//set third digit 
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
+				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);
+				break;
+			
+	}
+	digit_count = (digit_count+1)%3;
 	HAL_ADC_Start_IT(&hadc1);
-	 
+
   /* USER CODE END SysTick_IRQn 1 */
 }
 

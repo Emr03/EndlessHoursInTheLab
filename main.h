@@ -114,8 +114,8 @@
 #include <float.h>
 	void FIR_C(uint16_t *Input, float *Output, int index);
 	void C_math(float *Input, float *Output, int Length);
-	void to_digits(float input, int *digits)
-		
+	void to_digits(float input, int *digits);
+	
 //bit sequence for 7-segment display
 
 /* USER CODE END Private defines */
