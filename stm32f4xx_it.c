@@ -34,6 +34,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include <math.h>
 
 /* USER CODE BEGIN 0 */
 extern uint16_t tDelay;
@@ -43,7 +44,7 @@ extern int sample_counter;
 extern int update_counter;
 extern int16_t unfiltered_values[5];
 extern float filtered_values[10];
-uint8_t digit_count = 2; 
+ 
 extern float math_values[3]; 
 extern float rms; 
 extern uint8_t new_value_flag; 
@@ -51,6 +52,11 @@ extern uint8_t new_value_flag;
 extern float current_min; 
 extern float current_max; 
 
+extern float conv_min; 
+extern float conv_max; 
+extern float conv_rms; 
+
+float check_square_sum = 0; 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -72,33 +78,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-	//set digits
-	switch(digit_count){
-		
-		case(0):
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
-			// set the decimal point on the first digit
-			HAL_GPIO_WritePin(SEG, P, GPIO_PIN_SET); 
-			break;
-		
-		case(1):
-			//set second digit 
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET); 
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
-				break;
-		
-		case(2):
-			//set third digit 
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
-				HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);
-				break;
-			
-	}
-	digit_count = (digit_count+1)%3;
+
 	HAL_ADC_Start_IT(&hadc1);
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -159,6 +139,20 @@ void ADC_IRQHandler(void)
 	// add adcValue to the cyclic buffer
 	// since sample_counter counts to 10, and we save the last 5 unfiltered values, sample_counter%5 results in the appropriate index
 	unfiltered_values[sample_counter%5] = adcValue; 
+
+	
+	//do the math for 10 consecutive values
+	FIR_C(unfiltered_values, &filtered_values[0], update_counter);
+		
+	// find min, max and rms, moving window approach		
+	C_math(filtered_values, math_values, sample_counter%10);
+	check_square_sum = math_values[2];
+	current_min = math_values[0]; 
+	current_max = math_values[1]; 
+	conv_min = current_min * 3.3 / 4096;
+	conv_max = current_max * 3.3 / 4096;
+	conv_rms = rms * 3.3 / 4096;
+	//rms = sqrtf(math_values[2]);
 	
 	//update the sample counter (max 10)
 	sample_counter += 1;
@@ -168,20 +162,14 @@ void ADC_IRQHandler(void)
 	if (sample_counter == 10){
 			//reset the sample counter
 			sample_counter = 0; 		
-			// compute and reset the rms
-			rms = sqrtf(math_values[2]/10);	
-		}
+			// compute the rms
+			rms = sqrt(math_values[2]/10.0);	
+			// reset the rms
+			math_values[2] = 0; 
+			check_square_sum = math_values[2];
+	}
 	
-	//do the math for 10 consecutive values
-	FIR_C(unfiltered_values, filtered_values, sample_counter);
-		
-	// find min, max and rms, moving window approach		
-	C_math(adcValue, math_values);
-	current_min = math_values[0]; 
-	current_max = math_values[1]; 
-	rms = sqrtf(math_values[2]);
-		
-		
+
   /* USER CODE END ADC_IRQn 1 */
 }
 

@@ -114,7 +114,7 @@
 #include <float.h>
 
 	void FIR_C(uint16_t *Input, float *Output, int update_num);
-	void C_math(float input, float *Output);
+	void C_math(float* input, float *Output, int index);
 	void to_digits(float input, int *digits);
 	
 // Macro defines for seven segment display

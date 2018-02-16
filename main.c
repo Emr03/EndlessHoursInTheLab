@@ -49,7 +49,6 @@ DAC_HandleTypeDef hdac;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint16_t tDelay = 250;
 uint16_t adcValue=0;
 uint8_t state = 2; 
 int sample_counter = 0;
@@ -66,6 +65,9 @@ float current_min;
 float current_max; 
 float rms=0; 
 
+float conv_min;
+float conv_max;
+float conv_rms;
 
 /* USER CODE END PV */
 
@@ -185,6 +187,17 @@ void display(int digit){
 			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_SET);
 			break;
+		
+		default:
+			HAL_GPIO_WritePin(SEG, A, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, B, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, C, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, D, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, E, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(SEG, F, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(SEG, G, GPIO_PIN_RESET);
+			break;
+			
 	}
 }
 
@@ -196,7 +209,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	uint8_t digit_count = 2;
+	int* display_digits; 
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -229,20 +243,8 @@ int main(void)
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 	// that worked don't touch!
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 105);
+	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 1050);
 	
-
-	//write 8
-	/*
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_14, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_13, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_12, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_10, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_9, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET);
-	*/
 	
   /* USER CODE END 2 */
 
@@ -253,16 +255,16 @@ int main(void)
   /* USER CODE END WHILE */
 	
   /* USER CODE BEGIN 3 */
-		//float conv_value = adcValue * 3.3 / 4096;
+
 		
 		switch(state){
 				case(0):
 					//display min
-					// turn on green LED
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 					//display current min
+					display_digits = min_digits; 
 					break;
 				
 				case(1):
@@ -270,6 +272,7 @@ int main(void)
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					display_digits = max_digits; 
 					break;
 				
 				case(2):
@@ -277,15 +280,16 @@ int main(void)
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+					display_digits = rms_digits; 
 					break;				
 			}
 		
 		//switch case for refreshing display
 		if (update_counter == 500){
 			update_counter = 0;
-			to_digits(math_values[0], min_digits);
-			to_digits(math_values[1], max_digits);
-			to_digits(rms, rms_digits);				
+			to_digits(conv_min, min_digits);
+			to_digits(conv_max, max_digits);
+			to_digits(conv_rms, rms_digits);				
 		
 			// reset math values
 			rms = 0; 
@@ -294,9 +298,50 @@ int main(void)
 			math_values[2] = rms;
 		}
 				
-		//HAL_GPIO_TogglePin(GPIOD, LD6_Pin); 
-		//HAL_Delay(tDelay);
-		//HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+	//set digits
+	switch(digit_count){
+		
+		case(0):
+			display(10);
+			// set the first digit
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);
+		
+			// set the decimal point on the first digit
+			HAL_GPIO_WritePin(SEG, P, GPIO_PIN_SET); 
+		
+			display(display_digits[0]); 
+			break;
+		
+		case(1):
+			display(10);
+			//set second digit 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET); 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
+		
+			// set the decimal point on the first digit
+			HAL_GPIO_WritePin(SEG, P, GPIO_PIN_RESET);
+		
+			display(display_digits[1]); 
+				break;
+		
+		case(2):
+			//Turn off all segments
+			display(10);
+			//set third digit 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET); 
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET);
+		
+			display(display_digits[2]); 	
+			// set the decimal point on the first digit
+			HAL_GPIO_WritePin(SEG, P, GPIO_PIN_RESET);
+			
+			break;		
+	}
+		digit_count = (digit_count+1)%3;
   }
   /* USER CODE END 3 */
 
